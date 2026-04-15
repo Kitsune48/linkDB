@@ -1,148 +1,179 @@
 # LinkDB
 
-LinkDB is a private web app for saving, searching and sharing links among friends. Users are never self-registered: they are created manually through backend admin CLI commands.
+> A private web app for saving, searching, and sharing links among friends.
 
-## Stack
+Users are created exclusively through backend admin CLI commands—no self-registration.
 
-- Backend: Python + FastAPI + SQLAlchemy + Alembic
-- Frontend: React + Vite + TypeScript + Tailwind CSS
-- Database: MySQL
-- Packaging and deploy: Docker Compose + Nginx
-- Backend tests: Pytest
+## Features
 
-## Project structure
+- 🔐 Session-based authentication with secure HTTP-only cookies
+- 🔗 Save, organize, and search links with category tagging
+- 📚 Personal "Read Later" list per user
+- 🚀 Fast, type-safe stack with Python and TypeScript
+- 🐳 Production-ready Docker Compose setup
+- ✅ Comprehensive automated tests
 
-```text
-backend/
-frontend/
-infra/
-docs/
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Backend** | Python 3.13, FastAPI, SQLAlchemy, Alembic |
+| **Frontend** | React 18+, Vite, TypeScript, Tailwind CSS |
+| **Database** | MySQL 8+ |
+| **Deployment** | Docker Compose, Nginx |
+| **Testing** | Pytest |
+
+## Project Structure
+
 ```
+linkdb/
+├── backend/              # FastAPI application
+│   ├── app/
+│   │   ├── main.py              # Entry point
+│   │   ├── api/routes.py         # API endpoints
+│   │   ├── services/             # Business logic
+│   │   ├── db/models.py          # SQLAlchemy models
+│   │   └── scripts/              # Admin CLI tools
+│   └── alembic/                  # Database migrations
+├── frontend/             # React application
+│   └── src/
+│       ├── pages/                # Page components
+│       ├── components/           # Reusable components
+│       └── api/                  # API client
+├── infra/                # Docker Compose configuration
+└── docs/                 # Documentation
 
-## Key files
+## Quick Start
 
-- `backend/app/main.py`
-- `backend/app/api/routes.py`
-- `backend/app/services/auth.py`
-- `backend/app/services/links.py`
-- `backend/app/services/read_later.py`
-- `backend/app/db/models.py`
-- `backend/alembic/versions/20260415193000_initial_python_backend.py`
-- `backend/alembic/versions/20260415210000_add_read_later_links.py`
-- `frontend/src/pages/LoginPage.tsx`
-- `frontend/src/pages/SearchLinksPage.tsx`
-- `frontend/src/pages/NewLinkPage.tsx`
-- `frontend/src/pages/ReadLaterPage.tsx`
-- `frontend/src/api/`
-- `infra/docker-compose.yml`
-- `frontend/nginx/default.conf`
-- `docs/e2e-checklist.md`
+### Prerequisites
 
-## Local setup
+- **Backend**: Python 3.13+, pip
+- **Frontend**: Node.js 18+, npm
+- **Database**: Docker + Docker Compose (for local MySQL)
 
-### 1. Environment variables
-
-Create local env files from the examples:
+### 1. Clone & Setup Environment
 
 ```bash
+git clone https://github.com/Kitsune48/linkDB.git
+cd linkdb
+```
+
+Create `.env` files from templates:
+
+**Windows:**
+```powershell
 copy backend\.env.example backend\.env
 copy frontend\.env.example frontend\.env
 copy infra\.env.example infra\.env
 ```
 
-On Unix systems:
-
+**Mac/Linux:**
 ```bash
 cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 cp infra/.env.example infra/.env
 ```
 
-### 2. Start local MySQL
+### 2. Start MySQL
 
 ```bash
 cd infra
 docker compose up -d mysql
 ```
 
-For local host development the compose file exposes MySQL on `localhost:3306`.
+MySQL will be available at `localhost:3306`.
 
-### 3. Install dependencies
-
-Backend:
+### 3. Backend Setup
 
 ```bash
 cd backend
 python -m pip install -e .[dev]
+alembic upgrade head
 ```
 
-Frontend:
+### 4. Frontend Setup
 
 ```bash
 cd frontend
 npm install
 ```
 
-### 4. Run migrations
+### 5. Run Development Servers
 
-With MySQL running:
-
-```bash
-cd backend
-alembic upgrade head
-```
-
-### 5. Create users manually
-
-Users are not created through the public API.
-
-```bash
-cd backend
-python -m app.scripts.create_user [username] [password]
-python -m app.scripts.create_category [slug] [display-name]
-python -m app.scripts.delete_user [username]
-python -m app.scripts.reset_password [username] [password]
-python -m app.scripts.seed_demo_users
-```
-
-`users.password` always stores a `bcrypt` hash, never the clear-text password.
-Categories are loaded from the backend catalog, so categories created via CLI become selectable in the UI after reload.
-
-## Frontend sections
-
-After login the frontend is split into three dedicated sections:
-
-- `/links/search`: search, filters, edit/delete own links, add/remove read later
-- `/links/new`: create a new link
-- `/links/read-later`: personal read/watch later list for the current user
-
-### 6. Start backend and frontend
-
-Backend:
-
+**Terminal 1 - Backend:**
 ```bash
 cd backend
 uvicorn app.main:app --reload --host 0.0.0.0 --port 3000
 ```
 
-Frontend:
-
+**Terminal 2 - Frontend:**
 ```bash
 cd frontend
 npm run dev
 ```
 
-Local URLs:
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-- frontend: `http://localhost:5173`
-- backend: `http://localhost:3000`
-- health API: `http://localhost:3000/api/health`
+### 6. Create Your First User
 
-## Environment variables
+```bash
+cd backend
+python -m app.scripts.create_user [username] [password]
+```
 
-### Backend local
+Example:
+```bash
+python -m app.scripts.create_user alice alice123
+```
 
-File: `backend/.env`
+**Note:** Passwords are bcrypt-hashed immediately, never stored in plain text.
+
+---
+
+## User Management (CLI)
+
+```bash
+# Create user
+python -m app.scripts.create_user [username] [password]
+
+# Create category  
+python -m app.scripts.create_category [slug] [display-name]
+
+# Reset password
+python -m app.scripts.reset_password [username] [password]
+
+# Delete user
+python -m app.scripts.delete_user [username]
+
+# Seed demo users
+python -m app.scripts.seed_demo_users
+```
+
+---
+
+## Frontend Sections
+
+Once logged in, the app has three main sections:
+
+| Path | Purpose |
+|------|---------|
+| `/links/search` | Search, filter, and manage your links; add/remove items from read later |
+| `/links/new` | Create and submit new links |
+| `/links/read-later` | View your personal read/watch later list |
+
+---
+
+## API Health Check
+
+```bash
+curl http://localhost:3000/api/health
+```
+
+---
+
+## Environment Variables
+
+### Backend (backend/.env)
 
 ```env
 NODE_ENV=development
@@ -157,50 +188,20 @@ AUTH_COOKIE_NAME=linkdb_session
 AUTH_TOKEN_TTL_DAYS=7
 ```
 
-### Backend production
-
-Base file: `backend/.env.production.example`
-
-```env
-NODE_ENV=production
-PORT=3000
-DATABASE_URL=mysql://linkdb:change-me-db-password@mysql:3306/linkdb
-CORS_ORIGIN=https://your-domain.example
-JSON_BODY_LIMIT=100kb
-LOGIN_RATE_LIMIT_WINDOW_MS=900000
-LOGIN_RATE_LIMIT_MAX_REQUESTS=10
-AUTH_TOKEN_SECRET=change-me-with-a-long-random-secret
-AUTH_COOKIE_NAME=linkdb_session
-AUTH_TOKEN_TTL_DAYS=7
-```
-
-### Frontend local
-
-File: `frontend/.env`
+### Frontend (frontend/.env)
 
 ```env
 VITE_API_BASE_URL=http://localhost:3000
 ```
 
-### Frontend production
-
-Base file: `frontend/.env.production.example`
-
-```env
-VITE_API_BASE_URL=
-```
-
-When using the bundled Nginx proxy, the frontend already requests paths like `/api/auth/login`, so the production base URL must stay empty.
-
-### Docker Compose / VPS
-
-File: `infra/.env`
+### Docker Compose (infra/.env)
 
 ```env
 MYSQL_ROOT_PASSWORD=change-me-root-password
 MYSQL_DATABASE=linkdb
 MYSQL_USER=linkdb
 MYSQL_PASSWORD=change-me-db-password
+
 CORS_ORIGIN=https://your-domain.example
 JSON_BODY_LIMIT=100kb
 LOGIN_RATE_LIMIT_WINDOW_MS=900000
@@ -211,78 +212,88 @@ AUTH_TOKEN_TTL_DAYS=7
 FRONTEND_PORT=80
 ```
 
-`backend/.env` and `infra/.env` must reference the same MySQL credentials.
+**Important:** `backend/.env` and `infra/.env` must use the same MySQL credentials.
 
-## Docker Compose
+---
 
-Start the full stack:
+## Docker Compose (Production)
+
+Build and run all services:
 
 ```bash
 cd infra
 docker compose up -d --build
 ```
 
-Stop it:
+Stop services:
 
 ```bash
 docker compose down
 ```
 
-Services:
+### Services
 
-- `mysql`: persistent MySQL service, also exposed on `3306` for local host development
-- `backend`: FastAPI app + Alembic migrations
-- `frontend`: public Nginx container serving the frontend and proxying `/api` to the backend
+- **mysql**: Database (port 3306)
+- **backend**: FastAPI + Alembic migrations (port 3000)
+- **frontend**: Nginx proxy & frontend (port 80)
 
-## Deploy on a VPS
+---
 
-### 1. Prepare the server
+## Deployment to VPS
 
-- Install Docker Engine
-- Install Docker Compose plugin
-- Open at least port `80` on the firewall
-- Clone the repository on the VPS
+### 1. Prepare Server
 
-### 2. Configure
+- Install Docker Engine and Docker Compose
+- Open port 80 on firewall
+- Clone repository
+
+### 2. Configure Environment
 
 ```bash
 cd infra
 cp .env.example .env
 ```
 
-Update at least:
+Edit `.env` and update these critical values:
 
-- `MYSQL_ROOT_PASSWORD`
-- `MYSQL_PASSWORD`
-- `AUTH_TOKEN_SECRET`
-- `CORS_ORIGIN`
+- `MYSQL_ROOT_PASSWORD` – strong random password
+- `MYSQL_PASSWORD` – strong random password  
+- `AUTH_TOKEN_SECRET` – strong random 32+ character secret
+- `CORS_ORIGIN` – your domain (e.g., `https://links.example.com`)
 
-### 3. Build and start
+### 3. Start Production Stack
 
 ```bash
 docker compose up -d --build
 ```
 
-### 4. Migrations
+Migrations run automatically on backend startup.
 
-The backend container applies Alembic migrations automatically on startup with `alembic upgrade head`.
-
-### 5. Create the first user
+### 4. Create Admin User
 
 ```bash
 docker compose exec backend python -m app.scripts.create_user [username] [password]
 ```
 
-### 6. Initial checks
+### 5. Verify Deployment
 
-- `http://YOUR_DOMAIN_OR_IP/` reaches the frontend
-- `http://YOUR_DOMAIN_OR_IP/api/health` responds
-- frontend login works
+- ✅ Frontend loads: `https://your-domain.com/`
+- ✅ API responds: `https://your-domain.com/api/health`
+- ✅ Login works and redirects to `/links/search`
 
-## Backup and restore
+---
+
+## Backup & Restore
 
 ### Backup MySQL
 
+**Windows:**
+```powershell
+cd infra
+docker compose exec mysql sh -c 'mysqldump -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE"' > backup.sql
+```
+
+**Mac/Linux:**
 ```bash
 cd infra
 docker compose exec mysql sh -c 'mysqldump -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE"' > backup.sql
@@ -290,43 +301,53 @@ docker compose exec mysql sh -c 'mysqldump -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "
 
 ### Restore MySQL
 
-```bash
-cd infra
+**Windows:**
+```powershell
 Get-Content backup.sql | docker compose exec -T mysql sh -c 'mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE"'
 ```
 
-On Unix systems:
-
+**Mac/Linux:**
 ```bash
-cd infra
 cat backup.sql | docker compose exec -T mysql sh -c 'mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE"'
 ```
 
-## Tests
+---
 
-Backend:
+## Testing
+
+### Run Backend Tests
 
 ```bash
 cd backend
 python -m pytest
 ```
 
-Checklist end-to-end:
+Current coverage includes:
 
-- `docs/e2e-checklist.md`
+- ✅ Authentication service and routes
+- ✅ Links management service and routes
+- ✅ Category catalog and read-later flows
+- ✅ Invalid JSON handling and validation
+- ✅ Session cookie flow and CRUD operations
+- ✅ Alembic migrations (manual)
+- ✅ Admin CLI scripts (manual)
 
-Backend verification currently covers:
+See [docs/e2e-checklist.md](docs/e2e-checklist.md) for end-to-end validation steps.
 
-- automated pytest coverage for auth service/routes and links service/routes
-- automated pytest coverage for category catalog and read later flows
-- invalid JSON handling and validation failures
-- session cookie flow and authenticated CRUD
-- manual smoke checks for Alembic migrations and admin CLI commands
+---
 
-## Current limitations
+## Limitations
 
-- no public user registration API
-- no advanced roles or permissions
-- simple signed session cookie with HttpOnly flag
+- ❌ No public user registration API
+- ❌ No advanced role-based access control (RBAC)
+- ❌ Simple signed session cookies (no external OAuth)
+- ❌ No built-in TLS (use reverse proxy or cloud provider)
+- ❌ No E2E browser test suite
+
+---
+
+## License
+
+This project is provided as-is for educational and personal use.
 - no full browser E2E suite
 - deploy assumes HTTP unless TLS is terminated in front of Nginx
