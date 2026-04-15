@@ -1,0 +1,9 @@
+node_modules/
+dist/
+build/
+.vite/
+.turbo/
+.cache/
+coverage/
+*.egg-info/
+pytest-cache-files-*/

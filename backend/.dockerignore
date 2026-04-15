@@ -1,0 +1,10 @@
+.env
+.pytest_cache
+__pycache__
+*.log
+*.pyc
+coverage
+dist
+node_modules
+prisma
+src
